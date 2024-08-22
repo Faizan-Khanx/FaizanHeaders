@@ -3,7 +3,8 @@
 ![email](https://github.com/user-attachments/assets/e208df07-3002-4e04-bd43-9560fbfb5409)
 
 - What is FaizanHeaders?
-
+- 
+First of all, it is a tool based on [MailMeta](https://github.com/gr33nm0nk2802/mailMeta) by Syed Modassir Ali, which I used as inspiration to develop this tool.
 **FaizanHeaders** is a python based forensic tool which reads through the email headers from the email file and extracts crucial information to identify if the email is legitimate. 
 
 -  What are the advantages of using FaizanHeaders?
