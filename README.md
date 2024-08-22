@@ -41,7 +41,7 @@ You have two methods to use FaizanHeaders. Either you can download the github re
     git clone https://github.com/Faizan-Khanx/FaizanHeaders
   ```
 
-2.  Running from the meta.py file
+2.  Running from the FaizanHeaders.py file
 
   ```(bash)
     cd FaizanHeaders
