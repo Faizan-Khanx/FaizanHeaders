@@ -30,19 +30,29 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-f","--file", help="enter the raw(original) email file",type=str)
 args=parser.parse_args()
 
-if len(sys.argv) == 1:
-    parser.print_help()
-    sys.exit()
-
 # Reading the file Need to take the file as command line arguments argparse
-f = open(args.file)
-msg = email.message_from_file(f)
-f.close()
+try:
+    with open(args.file, 'r') as f:
+        msg = email.message_from_file(f)
+except FileNotFoundError:
+    print(Fore.RED + "File not found" + Style.RESET_ALL)
+    sys.exit(1)
+except Exception as e:
+    print(Fore.RED + f"Error: {str(e)}" + Style.RESET_ALL)
+    sys.exit(1)
 
-parser.print_help()
-print(Style.RESET_ALL)
-parser = email.parser.HeaderParser()
-headers = parser.parsestr(msg.as_string())
+#if len(sys.argv) == 1:
+#    parser.print_help()
+#    sys.exit()
+
+
+#f = open(args.file)
+#msg = email.message_from_file(f)
+#f.close()
+#parser.print_help()
+#parser = email.parser.HeaderParser()
+
+headers = email.parser.HeaderParser().parsestr(msg.as_string())
 
 
 meta={
@@ -60,47 +70,48 @@ meta={
 }
 
 for h in headers.items():
+	field = h[0].lower()
+	value = h[1]
 
 	# Message ID
-	if h[0].lower()=="message-id":
-		meta["message-id"]=h[1]
+	if field =="message-id":
+		meta["message-id"]= value
 
 
 	# Mail server sending the mail
-	if h[0].lower()=="received":
-		meta["sender-client"]=h[1]
+	if field =="received":
+		meta["sender-client"]= value
 
 	# Authentication detected by mail server
-	if h[0].lower()=="authentication-results":
+	if field =="authentication-results":
 
-		if(re.search("spf=pass",h[1])):
+		if(re.search("spf=pass",value)):
 			meta["spf-record"]=True;
 
-		if(re.search("dkim=pass",h[1])):
+		if(re.search("dkim=pass",value)):
 			meta["dkim-record"]=True
 	
-		if(re.search("dmarc=pass",h[1])):
+		if(re.search("dmarc=pass",value)):
 			meta["dmarc-record"]=True
 
-		if(re.search("does not designate",h[1])):
+		if(re.search("does not designate",value)):
 			meta["spoofed"]=True
-			
-		if(re.search("(\d{1,3}\.){3}\d{1,3}", h[1])):
-			ip=re.search("(\d{1,3}\.){3}\d{1,3}", h[1])
-			meta["ip-address"]=str(ip.group())
-			# print("IP Address: "+ip.group()+"\n")
+		ip_check = re.search(r"(\d{1,3}\.){3}\d{1,3}", value)
+		if ip_check:
+			meta["ip-address"]= ip_check.group()
 
-	if h[0].lower()=="reply-to":
-		meta["spoofed-mail"]=h[1]
 
-	if h[0].lower()=="date":
-		meta["dt"]=h[1]
+	if field =="reply-to":
+		meta["spoofed-mail"]= value
 
-	if h[0].lower()=="content-type":
-		meta["content-type"]=h[1]
+	if field =="date":
+		meta["dt"]= value
 
-	if h[0].lower()=="subject":
-		meta["subject"]=h[1]
+	if field =="content-type":
+		meta["content-type"]= value
+
+	if field =="subject":
+		meta["subject"]= value
 
 print(Fore.BLUE+"\n=========================Results=========================\n"+Style.RESET_ALL)
 
@@ -133,3 +144,4 @@ print(Fore.GREEN+"[+] Provider "+meta["sender-client"])
 print(Fore.GREEN+"[+] Content-Type: "+meta["content-type"])
 print(Fore.GREEN+"[+] Date and Time: "+meta["dt"])
 print(Fore.GREEN+"[+] Subject: "+meta["subject"]+"\n\n")
+print(Style.RESET_ALL)
